@@ -11,6 +11,7 @@ public class Cell {
     private final int gridX;
     private final int gridY;
 
+
     public Cell(int row, int col, int gridX, int gridY) {
         this.row = row;
         this.col = col;
@@ -22,7 +23,18 @@ public class Cell {
         wallRight = true;
         inFrontier = false;
     }
+
     public int getRow() {return row;}
     public int getCol() {return col;}
+
+    public void setWallUp(boolean state) {wallUp = state;}
+    public void setWallDown(boolean state) {wallDown = state;}
+    public void setWallLeft(boolean state) {wallLeft = state;}
+    public void setWallRight(boolean state) {wallRight = state;}
+    public boolean getWallUp() {return wallUp;}
+    public boolean getWallDown() {return wallDown;}
+    public boolean getWallRight() {return wallRight;}
+    public boolean getWallLeft() {return wallLeft;}
+
 
 }
