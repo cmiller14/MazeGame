@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Random;
 
 public class Maze {
@@ -8,12 +7,15 @@ public class Maze {
     private Random rand = new Random();
     private int rows;
     private int cols;
+    private float cellSize;
 
-    public Maze(int rows, int cols) {
+
+    public Maze(int rows, int cols, float cellSize) {
         this.grid = new Cell[rows][cols];
         this.frontier = new ArrayList<>();
         this.rows = rows;
         this.cols = cols;
+        this.cellSize = cellSize;
         populateGrid();
     }
 
@@ -21,6 +23,18 @@ public class Maze {
     public int getCols() {return cols;}
 
     public Cell getCell(int row, int col) {return grid[row][col];}
+
+    public float getCellSize() {return this.cellSize;}
+
+    public boolean wallNotExists(int row, int col, String direction) {
+        return !switch (direction) {
+            case "up" -> grid[row][col].getWallUp();
+            case "down" -> grid[row][col].getWallDown();
+            case "left" -> grid[row][col].getWallLeft();
+            case "right" -> grid[row][col].getWallRight();
+            default -> false;
+        };
+    }
 
     public void generateMaze() {
         // randomly pick a cell and add it to the maze
