@@ -1,4 +1,5 @@
 import edu.usu.graphics.*;
+import edu.usu.utils.Tuple2;
 
 import java.util.ArrayList;
 import java.util.Stack;
@@ -17,13 +18,19 @@ public class Game {
     private Font fontTime;
     private Font fontInstructions;
     private int score;
+    private Texture background;
+    private Rectangle backgroundRec;
+    private Rectangle finishMessage;
+    private Texture star;
+    private ArrayList<Tuple2<String,String>> highScores;
 
     private boolean showBreadCrumbs;
     private boolean showShortestPath;
     private boolean playerMoved;
     private boolean showHint;
-
-    private static final float SPRITE_MOVE_RATE_PER_SECOND = 0.40f;
+    private boolean finished;
+    private boolean showScores;
+    private boolean showCredits;
 
     public Game(Graphics2D graphics) {
         this.graphics = graphics;
@@ -35,29 +42,49 @@ public class Game {
         initializeKeyboardInput();
         fontTime = new Font("resources/fonts/Roboto-Regular.ttf", 36, false);
         fontInstructions = new Font("resources/fonts/Roboto-Regular.ttf", 24, false);
+        initializeTextures();
+        highScores = new ArrayList<>();
+        initializeFinishMessage();
+    }
+
+    private void initializeFinishMessage() {
+        float width = (this.maze.getCellSize() * this.maze.getRows()) - 0.05f;
+        float height = (this.maze.getCellSize() * this.maze.getCols()) / 2;
+        finishMessage = new Rectangle((-0.5f) + (0.05f/2f), (-0.5f) + (0.05f/2f), width, height, 0.9f);
+    }
+
+    private void initializeTextures() {
+        background = new Texture("resources/images/background.jpeg");
+        float width = this.maze.getCellSize() * this.maze.getRows();
+        float height = this.maze.getCellSize() * this.maze.getCols();
+        backgroundRec = new Rectangle(-0.5f, -0.5f, width, height);
+        star = new Texture("resources/images/star.png");
     }
 
     private void initializeKeyboardInput() {
         // Register the inputs we want to have invoked
-        inputKeyboard.registerCommand(GLFW_KEY_W, true, (double elapsedTime) -> player.moveUp((float) elapsedTime * SPRITE_MOVE_RATE_PER_SECOND));
-        inputKeyboard.registerCommand(GLFW_KEY_S, true, (double elapsedTime) -> player.moveDown((float) elapsedTime * SPRITE_MOVE_RATE_PER_SECOND));
-        inputKeyboard.registerCommand(GLFW_KEY_A, true, (double elapsedTime) -> player.moveLeft((float) elapsedTime * SPRITE_MOVE_RATE_PER_SECOND));
-        inputKeyboard.registerCommand(GLFW_KEY_D, true, (double elapsedTime) -> player.moveRight((float) elapsedTime * SPRITE_MOVE_RATE_PER_SECOND));
-        inputKeyboard.registerCommand(GLFW_KEY_UP, true, (double elapsedTime) -> player.moveUp((float) elapsedTime * SPRITE_MOVE_RATE_PER_SECOND));
-        inputKeyboard.registerCommand(GLFW_KEY_DOWN, true, (double elapsedTime) -> player.moveDown((float) elapsedTime * SPRITE_MOVE_RATE_PER_SECOND));
-        inputKeyboard.registerCommand(GLFW_KEY_LEFT, true, (double elapsedTime) -> player.moveLeft((float) elapsedTime * SPRITE_MOVE_RATE_PER_SECOND));
-        inputKeyboard.registerCommand(GLFW_KEY_RIGHT, true, (double elapsedTime) -> player.moveRight((float) elapsedTime * SPRITE_MOVE_RATE_PER_SECOND));
+        inputKeyboard.registerCommand(GLFW_KEY_W, true, (double elapsedTime) -> player.moveUp((float) elapsedTime));
+        inputKeyboard.registerCommand(GLFW_KEY_S, true, (double elapsedTime) -> player.moveDown((float) elapsedTime));
+        inputKeyboard.registerCommand(GLFW_KEY_A, true, (double elapsedTime) -> player.moveLeft((float) elapsedTime));
+        inputKeyboard.registerCommand(GLFW_KEY_D, true, (double elapsedTime) -> player.moveRight((float) elapsedTime));
+        inputKeyboard.registerCommand(GLFW_KEY_UP, true, (double elapsedTime) -> player.moveUp((float) elapsedTime));
+        inputKeyboard.registerCommand(GLFW_KEY_DOWN, true, (double elapsedTime) -> player.moveDown((float) elapsedTime));
+        inputKeyboard.registerCommand(GLFW_KEY_LEFT, true, (double elapsedTime) -> player.moveLeft((float) elapsedTime));
+        inputKeyboard.registerCommand(GLFW_KEY_RIGHT, true, (double elapsedTime) -> player.moveRight((float) elapsedTime));
         inputKeyboard.registerCommand(GLFW_KEY_B, true, (double elapsedTime) -> showBreadCrumbs = !showBreadCrumbs);
-        inputKeyboard.registerCommand(GLFW_KEY_F1, true, (double elapsedTime) -> createMaze(5,5, 1/10f));
-        inputKeyboard.registerCommand(GLFW_KEY_F2, true, (double elapsedTime) -> createMaze(10,10, 1/15f));
-        inputKeyboard.registerCommand(GLFW_KEY_F3, true, (double elapsedTime) -> createMaze(15,15, 1/20f));
+        inputKeyboard.registerCommand(GLFW_KEY_F1, true, (double elapsedTime) -> createMaze(5,5, 1/6.25f));
+        inputKeyboard.registerCommand(GLFW_KEY_F2, true, (double elapsedTime) -> createMaze(10,10, 1/12.5f));
+        inputKeyboard.registerCommand(GLFW_KEY_F3, true, (double elapsedTime) -> createMaze(15,15, 1/18.75f));
         inputKeyboard.registerCommand(GLFW_KEY_F4, true, (double elapsedTime) -> createMaze(20,20, 1/25f));
-        inputKeyboard.registerCommand(GLFW_KEY_F7, true, (double elapsedTime) -> createMaze(25,25, 1/30.0f));
         inputKeyboard.registerCommand(GLFW_KEY_P, true, (double elapsedTime) -> showShortestPath = !showShortestPath);
         inputKeyboard.registerCommand(GLFW_KEY_H, true, (double elapsedTime) -> showHint = !showHint);
+        inputKeyboard.registerCommand(GLFW_KEY_F5, true, (double elapsedTime) -> showScores = !showScores);
+        inputKeyboard.registerCommand(GLFW_KEY_F5, true, (double elapsedTime) -> showCredits = !showCredits);
     }
 
     public void shutdown() {
+        background.cleanup();
+        star.cleanup();
     }
 
     public void run() {
@@ -95,6 +122,15 @@ public class Game {
         }
         updateVisited();
         previousPos = maze.getCell(player.getRow(),player.getCol());
+        finished = previousPos.equals(maze.getCell(maze.getRows()-1,maze.getCols()-1));
+        updateScores();
+    }
+
+    private void updateScores() {
+        if (finished && playerMoved) {
+            String mazeSize = String.format("%dx%d", maze.getRows(), maze.getCols());
+            highScores.add(new Tuple2<>(mazeSize, String.valueOf(score)));
+        }
     }
 
     private void updateScore() {
@@ -120,7 +156,7 @@ public class Game {
     }
 
     private void updateTime(double elapsedTime) {
-        time = time + elapsedTime;
+        if(!finished) time = time + elapsedTime;
     }
 
     private void updatePlayerMoved() {
@@ -134,6 +170,7 @@ public class Game {
     private void render(double elapsedTime) {
         graphics.begin();
 
+        renderBackground();
         renderAllCells();
         renderPlayer();
         renderBreadCrumbs();
@@ -142,8 +179,70 @@ public class Game {
         renderTime();
         renderInstructions();
         renderScore();
+        renderFinish();
+        renderFinishMessage();
+        renderScores();
+        renderCredits();
 
         graphics.end();
+    }
+
+    private void renderCredits() {
+        //TODO
+        if (showCredits) {
+            // render the background
+            // render the text
+
+        }
+    }
+
+    private void renderScores() {
+        //TODO
+        // go through the scores and render them
+        if (showScores) {
+            for (Tuple2<String, String> score : highScores) {
+
+            }
+        }
+    }
+
+    private void renderFinishMessage() {
+        if (finished) {
+            graphics.draw(finishMessage, Color.BLACK);
+            // write out message and stats
+            graphics.drawTextByHeight(
+                    fontTime,
+                    "Congratulations",
+                    finishMessage.left - (finishMessage.left/2),
+                    finishMessage.top,
+                    finishMessage.height / 8,
+                    0.91f,
+                    Color.WHITE
+            );
+            graphics.drawTextByHeight(
+                    fontTime,
+                    "Choose maze size to restart",
+                    finishMessage.left - (finishMessage.left/4),
+                    finishMessage.top + (finishMessage.height/4),
+                    finishMessage.height / 8,
+                    0.91f,
+                    Color.WHITE
+            );
+        }
+    }
+
+    private void renderFinish() {
+        // make the rectangle at the bottom left
+        float top = -0.5f + (this.maze.getCols()-1) * this.maze.getCellSize();
+        float left = -0.5f + (this.maze.getRows()-1) * this.maze.getCellSize();
+        float width = this.maze.getCellSize();
+        float height = this.maze.getCellSize();
+        Rectangle finish = new Rectangle(left, top, width, height);
+        graphics.draw(star, finish, Color.YELLOW);
+    }
+
+    private void renderBackground() {
+        graphics.draw(background, backgroundRec, Color.WHITE);
     }
 
     private void renderScore() {
@@ -202,7 +301,7 @@ public class Game {
             float left = HINT_LEFT + cell.getCol() * HINT_SIZE;
             float top = HINT_TOP + cell.getRow() * HINT_SIZE;
             Rectangle r = new Rectangle(left, top, HINT_SIZE, HINT_SIZE, 0.1f);
-            graphics.draw(r, Color.WHITE);
+            graphics.draw(star, r, Color.WHITE);
         }
     }
 
@@ -218,7 +317,7 @@ public class Game {
                         float left = BREAD_CRUMB_LEFT + maze.getCell(row,col).getCol() * BREAD_CRUMB_SIZE;
                         float top = BREAD_CRUMB_TOP + maze.getCell(row,col).getRow() * BREAD_CRUMB_SIZE;
                         Rectangle r = new Rectangle(left, top, BREAD_CRUMB_SIZE, BREAD_CRUMB_SIZE, 0.1f);
-                        graphics.draw(r, Color.GREEN);
+                        graphics.draw(star, r, Color.PURPLE);
                     }
                 }
             }
@@ -235,7 +334,7 @@ public class Game {
                 float left = SHORTEST_PATH_LEFT + cell.getCol() * SHORTEST_PATH_SIZE;
                 float top = SHORTEST_PATH_TOP + cell.getRow() * SHORTEST_PATH_SIZE;
                 Rectangle r = new Rectangle(left, top, SHORTEST_PATH_SIZE, SHORTEST_PATH_SIZE, 0.1f);
-                graphics.draw(r, Color.PURPLE);
+                graphics.draw(star, r, Color.GREEN);
             }
         }
     }
