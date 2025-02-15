@@ -8,8 +8,8 @@ public class Player {
     private final int maxCol;
     private final float cellSize;
     private final Rectangle playerRec;
-    private final float playerLeft; //-0.4935f;
-    private final float playerTop; //-0.4935f;
+    private final float playerLeft;
+    private final float playerTop;
 
     public Player(int row, int col, Maze maze) {
         this.row = row;
@@ -58,4 +58,5 @@ public class Player {
             playerRec.left = playerLeft + this.col * cellSize;
         }
     }
+
 }

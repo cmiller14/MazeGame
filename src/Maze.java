@@ -17,10 +17,13 @@ public class Maze {
         this.cols = cols;
         this.cellSize = cellSize;
         populateGrid();
+        generateMaze();
     }
 
     public int getRows() {return rows;}
     public int getCols() {return cols;}
+
+    public Cell[][] getGrid() {return this.grid;}
 
     public Cell getCell(int row, int col) {return grid[row][col];}
 
@@ -36,18 +39,18 @@ public class Maze {
         };
     }
 
-    public void generateMaze() {
+    private void generateMaze() {
         // randomly pick a cell and add it to the maze
         Cell firstCell = selectRandomCell();
         // add its neighboring cells to the frontier
-        ArrayList<Cell> neighbors = getNeighbors(firstCell);
+        ArrayList<Cell> neighbors = firstCell.getNeighbors(this.grid);
         addCellsToFrontier(neighbors);
         while (!frontier.isEmpty()) {
             // randomly choose a cell in the frontier.
             Cell randomFrontier = selectRandomFrontier();
             // randomly choose a wall that connects to a cell in the maze
             // get the shared walls between the neighbors and the random frontier cell then remove a wall
-            neighbors = getNeighbors(randomFrontier);
+            neighbors = randomFrontier.getNeighbors(this.grid);
             neighbors = getNeighborsInMaze(neighbors);
             removeWall(randomFrontier, neighbors);
             // add the cell to the maze
@@ -67,7 +70,7 @@ public class Maze {
     private void updateFrontier(Cell selectedCell) {
         frontier.remove(selectedCell);
         selectedCell.setInFrontier(false);
-        ArrayList<Cell> neighbors = getNeighbors(selectedCell);
+        ArrayList<Cell> neighbors = selectedCell.getNeighbors(grid);
         for (Cell neighbor : neighbors) {
             if (!neighbor.getInFrontier() && !neighbor.getInMaze()) {
                 frontier.add(neighbor);
@@ -136,31 +139,5 @@ public class Maze {
             }
         }
     }
-
-    private ArrayList<Cell> getNeighbors(Cell cell) {
-        int row = cell.getRow();
-        int col = cell.getCol();
-        int rowLength = grid.length;
-        int colLength = grid[0].length;
-        ArrayList<Cell> neighbors = new ArrayList<>();
-        // Up
-        if (row - 1 >= 0) {
-            neighbors.add(grid[row - 1][col]);
-        }
-        // Down
-        if (row + 1 < rowLength) {
-            neighbors.add(grid[row + 1][col]);
-        }
-        // Left
-        if (col - 1 >= 0) {
-            neighbors.add(grid[row][col - 1]);
-        }
-        // Right
-        if (col + 1 < colLength) {
-            neighbors.add(grid[row][col + 1]);
-        }
-        return neighbors;
-    }
-
 }
 
