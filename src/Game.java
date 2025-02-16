@@ -20,6 +20,7 @@ public class Game {
     private Texture background;
     private Rectangle backgroundRec;
     private Rectangle finishMessage;
+    private Rectangle creditsMessage;
     private Texture star;
     private ArrayList<Tuple2<String,Integer>> highScores;
 
@@ -50,6 +51,7 @@ public class Game {
         float width = (this.maze.getCellSize() * this.maze.getRows()) - 0.05f;
         float height = (this.maze.getCellSize() * this.maze.getCols()) / 2;
         finishMessage = new Rectangle((-0.5f) + (0.05f/2f), (-0.5f) + (0.05f/2f), width, height, 0.9f);
+        creditsMessage = new Rectangle((-0.5f) + (0.05f/2f), (-0.5f) + (0.05f/2f), width, height, 0.92f);
     }
 
     private void initializeTextures() {
@@ -187,11 +189,18 @@ public class Game {
     }
 
     private void renderCredits() {
-        //TODO
         if (showCredits) {
-            // render the background
-            // render the text
-
+            graphics.draw(creditsMessage, Color.BLACK);
+            // write out message and stats
+            graphics.drawTextByHeight(
+                    fontTime,
+                    "Made By Chase Miller",
+                    finishMessage.left - (finishMessage.left/3),
+                    finishMessage.top,
+                    finishMessage.height / 8,
+                    0.93f,
+                    Color.WHITE
+            );
         }
     }
 
