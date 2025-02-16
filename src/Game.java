@@ -1,8 +1,7 @@
 import edu.usu.graphics.*;
 import edu.usu.utils.Tuple2;
 
-import java.util.ArrayList;
-import java.util.Stack;
+import java.util.*;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -22,7 +21,7 @@ public class Game {
     private Rectangle backgroundRec;
     private Rectangle finishMessage;
     private Texture star;
-    private ArrayList<Tuple2<String,String>> highScores;
+    private ArrayList<Tuple2<String,Integer>> highScores;
 
     private boolean showBreadCrumbs;
     private boolean showShortestPath;
@@ -79,7 +78,7 @@ public class Game {
         inputKeyboard.registerCommand(GLFW_KEY_P, true, (double elapsedTime) -> showShortestPath = !showShortestPath);
         inputKeyboard.registerCommand(GLFW_KEY_H, true, (double elapsedTime) -> showHint = !showHint);
         inputKeyboard.registerCommand(GLFW_KEY_F5, true, (double elapsedTime) -> showScores = !showScores);
-        inputKeyboard.registerCommand(GLFW_KEY_F5, true, (double elapsedTime) -> showCredits = !showCredits);
+        inputKeyboard.registerCommand(GLFW_KEY_F6, true, (double elapsedTime) -> showCredits = !showCredits);
     }
 
     public void shutdown() {
@@ -129,7 +128,7 @@ public class Game {
     private void updateScores() {
         if (finished && playerMoved) {
             String mazeSize = String.format("%dx%d", maze.getRows(), maze.getCols());
-            highScores.add(new Tuple2<>(mazeSize, String.valueOf(score)));
+            highScores.add(new Tuple2<>(mazeSize, score));
         }
     }
 
@@ -197,11 +196,16 @@ public class Game {
     }
 
     private void renderScores() {
-        //TODO
-        // go through the scores and render them
         if (showScores) {
-            for (Tuple2<String, String> score : highScores) {
-
+            float top = -0.40f;
+            float left = 0.6f;
+            float height = 0.04f;
+            highScores.sort(Comparator.comparingInt(Tuple2::item2));
+            List<Tuple2<String, Integer>> reversedScores = highScores.reversed();
+            for (Tuple2<String, Integer> score : reversedScores) {
+                String scoreString = String.format("Size: %s Score: %d", score.item1(), score.item2());
+                graphics.drawTextByHeight(fontInstructions, scoreString, left, top, height, Color.WHITE);
+                top += 0.05f;
             }
         }
     }
