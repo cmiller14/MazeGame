@@ -292,10 +292,8 @@ public class Game {
         // Convert to minutes, seconds, and milliseconds
         int minutes = (int) (time / 60);       // Get whole minutes
         int seconds = (int) (time % 60);       // Get whole seconds
-        int milliseconds = (int) ((time % 1) * 1000); // Get milliseconds
 
-        // Format time as 00:00:00 (mm:ss:SSS)
-        String formattedTime = String.format("Time: %02d:%02d:%03d", minutes, seconds, milliseconds);
+        String formattedTime = String.format("Time: %02d:%02d", minutes, seconds);
         graphics.drawTextByHeight(fontTime, formattedTime, 0.6f, -0.50f, 0.05f, Color.WHITE);
     }
 
