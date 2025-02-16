@@ -81,6 +81,11 @@ public class Game {
         inputKeyboard.registerCommand(GLFW_KEY_H, true, (double elapsedTime) -> showHint = !showHint);
         inputKeyboard.registerCommand(GLFW_KEY_F5, true, (double elapsedTime) -> showScores = !showScores);
         inputKeyboard.registerCommand(GLFW_KEY_F6, true, (double elapsedTime) -> showCredits = !showCredits);
+        inputKeyboard.registerCommand(GLFW_KEY_I, true, (double elapsedTime) -> player.moveUp((float) elapsedTime));
+        inputKeyboard.registerCommand(GLFW_KEY_K, true, (double elapsedTime) -> player.moveDown((float) elapsedTime));
+        inputKeyboard.registerCommand(GLFW_KEY_J, true, (double elapsedTime) -> player.moveLeft((float) elapsedTime));
+        inputKeyboard.registerCommand(GLFW_KEY_L, true, (double elapsedTime) -> player.moveRight((float) elapsedTime));
+
     }
 
     public void shutdown() {
